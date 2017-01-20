@@ -214,11 +214,7 @@ _zsh_autosuggest_suggestion() {
 
 	# Escape special chars in the string (requires EXTENDED_GLOB)
 	local prefix="${@//(#m)[\\()\[\]|*?]/\\$MATCH}"
-	if [[ -o extended_history ]]; then
-		local -a recent=(${"${(f)$(cat $HISTFILE)}"#*;})
-	else
-		local -a recent=(${"${(f)$(cat $HISTFILE)}"})
-	fi
+	local -a recent=(${"${(f)$(cat $HISTFILE)}"#: [0-9]##:0;})
 	# Echo the first item that matches
 	echo -E ${recent[(R)$prefix*]}
 }

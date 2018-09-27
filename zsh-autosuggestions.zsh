@@ -116,21 +116,21 @@ _zsh_autosuggest_bind_widget() {
 	# Save a reference to the original widget
 	case $widgets[$widget] in
 		# Already bound
-		user:_zsh_autosuggest_(bound|orig)_*);;
+		(user:_zsh_autosuggest_(bound|orig)_*);;
 
 		# User-defined widget
-		user:*)
+		(user:*)
 			zle -N $prefix$widget ${widgets[$widget]#*:}
 			;;
 
 		# Built-in widget
-		builtin)
+		(builtin)
 			eval "_zsh_autosuggest_orig_$widget() { zle .$widget }"
 			zle -N $prefix$widget _zsh_autosuggest_orig_$widget
 			;;
 
 		# Completion widget
-		completion:*)
+		(completion:*)
 			eval "zle -C $prefix$widget ${${widgets[$widget]#*:}/:/ }"
 			;;
 	esac

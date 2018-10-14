@@ -67,6 +67,16 @@ ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS=(
     vi-forward-blank-word-end
 )
 
+zmodload zsh/sched
+
+_zsh_autosuggest_sched_remove() {
+    local sched_id
+    while true; do
+        sched_id=${zsh_scheduled_events[(I)*:*:$1]}
+        (( $sched_id )) || break
+        sched -$sched_id &> /dev/null
+    done
+}
 #--------------------------------------------------------------------#
 # Handle Deprecated Variables/Widgets                                #
 #--------------------------------------------------------------------#
@@ -226,7 +236,7 @@ _zle_synchronize_postdisplay() {
         else
             # The POSTDISPLAY is out-of-date so recompute it
             unset POSTDISPLAY
-            async_job suggest _zsh_autosuggest_suggestion $BUFFER
+            _zsh_autosuggest_worker_start
         fi
     else
         unset POSTDISPLAY
@@ -244,12 +254,54 @@ _zsh_autosuggest_callback() {
     # We can't modify ZLE variables in this callback, but
     # We can through ZLE widgets.
     POSTDISPLAY_INTERNAL=$3
+    _zsh_autosuggest_sched_remove _zsh_autosuggest_worker_timeout
+    _zsh_autosuggest_sched_remove _zsh_autosuggest_worker_check
+
     zle _zle_synchronize_postdisplay
 }
 
+_zsh_autosuggest_with_protected_return_code() {
+    local return=$?
+    "$@"
+    return $return
+}
+
+_zsh_autosuggest_worker_check() {
+    _zsh_autosuggest_with_protected_return_code \
+        async_process_results zsh_suggest _zsh_autosuggest_callback
+}
+
+_zsh_autosuggest_worker_setup() {
+    async_start_worker zsh_suggest -u
+    async_register_callback zsh_suggest _zsh_autosuggest_callback
+}
+
+_zsh_autosuggest_worker_cleanup() {
+    async_stop_worker zsh_suggest
+}
+
+_zsh_autosuggest_worker_reset() {
+    _zsh_autosuggest_worker_cleanup
+    _zsh_autosuggest_worker_setup
+}
+
+_zsh_autosuggest_worker_timeout() {
+    _zsh_autosuggest_worker_reset
+}
+
+_zsh_autosuggest_worker_start() {
+    if [[ -n $BUFFER ]]; then
+        async_job zsh_suggest _zsh_autosuggest_suggestion $BUFFER
+    fi
+
+    sched +1 _zsh_autosuggest_worker_check
+    sched +9 _zsh_autosuggest_worker_check
+
+    sched +10 _zsh_autosuggest_worker_timeout
+}
+
 async_init
-async_start_worker suggest -u
-async_register_callback suggest _zsh_autosuggest_callback
+_zsh_autosuggest_worker_setup
 
 #--------------------------------------------------------------------#
 # Autosuggest Widget Implementations                                 #
@@ -271,9 +323,7 @@ _zsh_autosuggest_modify() {
     # Get a new suggestion if the buffer is not empty after modification
     local suggestion
     zle _zle_synchronize_postdisplay
-    if [[ -n $BUFFER ]]; then
-        async_job suggest _zsh_autosuggest_suggestion $BUFFER
-    fi
+    _zsh_autosuggest_worker_start
 }
 
 # Accept the entire suggestion

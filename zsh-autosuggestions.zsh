@@ -257,7 +257,7 @@ _zsh_autosuggest_callback() {
     _zsh_autosuggest_sched_remove _zsh_autosuggest_worker_timeout
     _zsh_autosuggest_sched_remove _zsh_autosuggest_worker_check
 
-    zle _zle_synchronize_postdisplay
+    zle && zle _zle_synchronize_postdisplay
 }
 
 _zsh_autosuggest_with_protected_return_code() {

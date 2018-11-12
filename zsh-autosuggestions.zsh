@@ -281,8 +281,7 @@ _zsh_autosuggest_worker_cleanup() {
 }
 
 _zsh_autosuggest_worker_reset() {
-    _zsh_autosuggest_worker_cleanup
-    _zsh_autosuggest_worker_setup
+    async_flush_jobs zsh_suggest
 }
 
 _zsh_autosuggest_worker_timeout() {

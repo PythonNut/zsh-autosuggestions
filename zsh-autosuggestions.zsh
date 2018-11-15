@@ -67,6 +67,7 @@ ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS=(
     vi-forward-blank-word-end
 )
 
+zmodload zsh/mapfile
 zmodload zsh/sched
 
 _zsh_autosuggest_sched_remove() {
@@ -224,7 +225,7 @@ _zsh_autosuggest_suggestion() {
 
     # Escape special chars in the string (requires EXTENDED_GLOB)
     local prefix="${@//(#m)[\\()\[\]|*?]/\\$MATCH}"
-    local -a recent=(${"${(f)$(cat $HISTFILE)}"#: [0-9]##:0;})
+    local -a recent=(${"${(f)mapfile[$HISTFILE]}"#: [0-9]##:0;})
     # Echo the first item that matches
     echo -E ${recent[(R)$prefix*]}
 }

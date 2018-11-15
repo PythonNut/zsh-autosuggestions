@@ -299,9 +299,6 @@ _zsh_autosuggest_worker_start() {
     sched +10 _zsh_autosuggest_worker_timeout
 }
 
-async_init
-_zsh_autosuggest_worker_setup
-
 #--------------------------------------------------------------------#
 # Autosuggest Widget Implementations                                 #
 #--------------------------------------------------------------------#
@@ -386,6 +383,9 @@ _zsh_autosuggest_start() {
     _zsh_autosuggest_check_deprecated_config
     _zsh_autosuggest_bind_widgets
 }
+
+async_init
+_zsh_autosuggest_worker_setup
 
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd _zsh_autosuggest_start

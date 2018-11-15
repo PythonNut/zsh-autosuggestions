@@ -221,7 +221,7 @@ _zsh_autosuggest_highlight_apply() {
 
 # Get a suggestion from history that matches a given prefix
 _zsh_autosuggest_suggestion() {
-    setopt localoptions EXTENDED_GLOB
+    emulate -LR zsh -o extended_glob
 
     # Escape special chars in the string (requires EXTENDED_GLOB)
     local prefix="${@//(#m)[\\()\[\]|*?]/\\$MATCH}"

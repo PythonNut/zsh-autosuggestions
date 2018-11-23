@@ -232,8 +232,9 @@ _zsh_autosuggest_suggestion() {
 }
 
 _zle_synchronize_postdisplay() {
-    if [[ -n "$POSTDISPLAY_INTERNAL" && -n $BUFFER ]]; then
-        if [[ $POSTDISPLAY_INTERNAL == "$BUFFER"* ]]; then
+    if [[ -n $POSTDISPLAY_INTERNAL && -n $BUFFER ]]; then
+        local suffix=${POSTDISPLAY_INTERNAL##$BUFFER}
+        if [[ $suffix != $POSTDISPLAY_INTERNAL ]]; then
             POSTDISPLAY=${POSTDISPLAY_INTERNAL#$BUFFER}
         else
             # The POSTDISPLAY is out-of-date so recompute it

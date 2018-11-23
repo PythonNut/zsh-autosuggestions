@@ -224,10 +224,11 @@ _zsh_autosuggest_suggestion() {
     emulate -LR zsh -o extended_glob
 
     # Escape special chars in the string (requires EXTENDED_GLOB)
-    local prefix="${@//(#m)[\\()\[\]|*?]/\\$MATCH}"
+    local prefix="${(q)@}"
     local -a recent=(${"${(f)mapfile[$HISTFILE]}"#: [0-9]##:0;})
     # Echo the first item that matches
-    echo -E ${recent[(R)$prefix*]}
+    local result=${recent[(R)$prefix*]}
+    echo -E $result
 }
 
 _zle_synchronize_postdisplay() {

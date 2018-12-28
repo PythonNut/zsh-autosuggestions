@@ -253,6 +253,11 @@ _zle_synchronize_postdisplay() {
 zle -N _zle_synchronize_postdisplay
 
 _zsh_autosuggest_callback() {
+    if [[ $5 == zsh_suggest:zle\ -F*returned\ error* ]]; then
+        _zsh_autosuggest_worker_setup
+        return
+    fi
+
     # Add the suggestion to the POSTDISPLAY proxy variable
     # We can't modify ZLE variables in this callback, but
     # We can through ZLE widgets.

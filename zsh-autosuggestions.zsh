@@ -78,6 +78,37 @@ _zsh_autosuggest_sched_remove() {
         sched -$sched_id &> /dev/null
     done
 }
+
+_zsh_autosuggest_with_timeout() {
+    emulate -LR zsh -o no_monitor
+    local stat_reply
+    local -F time_limit=$1
+    shift
+    (eval $@) &
+
+    # TODO: /proc probably isn't portable
+    zstat -A stat_reply '+mtime' /proc/$!
+
+    local PID=$! START_TIME=$SECONDS MTIME=${stat_reply[1]}
+    while true; do
+        sleep 0.001
+        if [[ ! -d /proc/$PID ]]; then
+            break
+        fi
+        zstat -A stat_reply '+mtime' /proc/$PID
+        if (( ${stat_reply[1]} != $MTIME )); then
+            break
+        fi
+        if (( $SECONDS - $START_TIME > $time_limit )); then
+            {
+                kill -1 $PID
+                wait $PID
+            } 2> /dev/null
+            break
+        fi
+    done
+}
+
 #--------------------------------------------------------------------#
 # Handle Deprecated Variables/Widgets                                #
 #--------------------------------------------------------------------#
@@ -220,15 +251,20 @@ _zsh_autosuggest_highlight_apply() {
 #--------------------------------------------------------------------#
 
 # Get a suggestion from history that matches a given prefix
-_zsh_autosuggest_suggestion() {
+_zsh_autosuggest_suggestion_helper() {
     emulate -LR zsh -o extended_glob
 
     # Escape special chars in the string (requires EXTENDED_GLOB)
     local prefix="${(q)@}"
     local -a recent=(${"${(f)mapfile[$HISTFILE]}"#: [0-9]##:0;})
+
     # Echo the first item that matches
     local result=${recent[(R)$prefix*]}
     echo -E $result
+}
+
+_zsh_autosuggest_suggestion() {
+    _zsh_autosuggest_with_timeout 1 "_zsh_autosuggest_suggestion_helper $@"
 }
 
 _zle_synchronize_postdisplay() {

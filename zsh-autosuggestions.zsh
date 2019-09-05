@@ -254,8 +254,7 @@ _zsh_autosuggest_highlight_apply() {
 _zsh_autosuggest_suggestion_helper() {
     emulate -LR zsh -o extended_glob
 
-    # Escape special chars in the string (requires EXTENDED_GLOB)
-    local prefix="${(q)@}"
+    local prefix="${@}"
     local -a recent=(${"${(f)mapfile[$HISTFILE]}"#: [0-9]##:0;})
 
     # Echo the first item that matches

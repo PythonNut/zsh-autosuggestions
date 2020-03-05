@@ -263,7 +263,7 @@ _zsh_autosuggest_suggestion_helper() {
 }
 
 _zsh_autosuggest_suggestion() {
-    _zsh_autosuggest_with_timeout 1 "_zsh_autosuggest_suggestion_helper $@"
+    _zsh_autosuggest_with_timeout 1 "_zsh_autosuggest_suggestion_helper ${(q)@}"
 }
 
 _zle_synchronize_postdisplay() {
